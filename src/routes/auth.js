@@ -1,27 +1,28 @@
 const { Router } = require("express");
 const User = require("../schemas/User");
 const router = Router();
-const { hashPassword } = require("../utils/helpers");
+const { hashPassword, comparePassword } = require("../utils/helpers");
 
-router.get("/login", (req, res) => {
-  const { username, password } = req.body;
-  if (username && password) {
-    if (req.session.user) {
-      res.send(req.session.user);
-    } else {
-      req.session.user = {
-        username,
-      };
-      res.send(req.session);
-    }
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.send(400);
+  const userDB = await User.findOne({ email });
+  if (!userDB) return res.send(401);
+
+  const isValid = comparePassword(password, userDB.password);
+  if (isValid) {
+    console.log("Authenticated successfully");
+    req.session.user = userDB;
+    return res.send(200);
   } else {
-    res.send(401);
+    console.log("Failed to authenticate");
+    return res.send(401);
   }
 });
 
 router.post("/register", async (req, res) => {
-  const { username, password, email } = req.body;
-  const userDB = await User.findOne({ $or: [{ username }, { email }] });
+  const { email } = req.body;
+  const userDB = await User.findOne({ email });
   if (userDB) {
     res.status(400).send({ msg: "user already exists" });
   } else {
