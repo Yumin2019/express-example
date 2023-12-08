@@ -2,6 +2,10 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const mongoose = require("mongoose");
+const passport = require("passport");
+require("./strategies/local");
+
+// Router
 const groceriesRoute = require("./routes/groceries");
 const marketsRoute = require("./routes/markets");
 const authRouter = require("./routes/auth");
@@ -33,11 +37,14 @@ app.use((req, res, next) => {
 
 app.use("/api/v1/auth", authRouter);
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use((req, res, next) => {
-  if (req.session.user) next();
-  else {
-    res.send(401);
-  }
+  console.log("Inside Groceries Auth check middleware");
+  console.log(req.user);
+  if (req.user) next();
+  else res.send(401);
 });
 
 // prefix to a modular router
