@@ -1,6 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const mongoose = require("mongoose");
 const passport = require("passport");
 require("./strategies/local");
@@ -27,6 +28,9 @@ app.use(
     secret: "DKFJSDKFJDKFJDKSJFKDJFKSDFSDKFJDKSJ",
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: "mongodb+srv://root:1234@crypto.0uiet5b.mongodb.net",
+    }),
   })
 );
 
@@ -41,7 +45,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use((req, res, next) => {
-  console.log("Inside Groceries Auth check middleware");
   console.log(req.user);
   if (req.user) next();
   else res.send(401);
